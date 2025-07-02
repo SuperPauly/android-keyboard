@@ -39,7 +39,13 @@ val AllActionsMap = mapOf(
     "down" to ArrowDownAction,
     "left" to ArrowLeftAction,
     "right" to ArrowRightAction,
-    "font_typer" to FontTyperAction
+    "font_typer" to FontTyperAction,
+    "custom_shortcuts" to CustomShortcutsManagerAction,
+    "ctrl_l" to CtrlLAction,
+    "ctrl_r" to CtrlRAction,
+    "ctrl_z" to CtrlZAction,
+    "esc" to EscAction,
+    "tab" to TabAction
 )
 
 val ActionToId = AllActionsMap.entries.associate { it.value to it.key }
