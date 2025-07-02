@@ -7,7 +7,9 @@ import org.futo.inputmethod.latin.uix.AUDIO_FOCUS
 import org.futo.inputmethod.latin.uix.CAN_EXPAND_SPACE
 import org.futo.inputmethod.latin.uix.DISALLOW_SYMBOLS
 import org.futo.inputmethod.latin.uix.ENABLE_SOUND
+import org.futo.inputmethod.latin.uix.OPENAI_API_KEY
 import org.futo.inputmethod.latin.uix.PREFER_BLUETOOTH
+import org.futo.inputmethod.latin.uix.USE_ONLINE_WHISPER
 import org.futo.inputmethod.latin.uix.USE_SYSTEM_VOICE_INPUT
 import org.futo.inputmethod.latin.uix.USE_VAD_AUTOSTOP
 import org.futo.inputmethod.latin.uix.VERBOSE_PROGRESS
@@ -15,10 +17,15 @@ import org.futo.inputmethod.latin.uix.settings.NavigationItemStyle
 import org.futo.inputmethod.latin.uix.settings.UserSettingsMenu
 import org.futo.inputmethod.latin.uix.settings.useDataStoreValue
 import org.futo.inputmethod.latin.uix.settings.userSettingNavigationItem
+import org.futo.inputmethod.latin.uix.settings.userSettingTextFieldDataStore
 import org.futo.inputmethod.latin.uix.settings.userSettingToggleDataStore
 
 private val visibilityCheckNotSystemVoiceInput = @Composable {
     useDataStoreValue(USE_SYSTEM_VOICE_INPUT) == false
+}
+
+private val visibilityCheckOnlineWhisper = @Composable {
+    useDataStoreValue(USE_SYSTEM_VOICE_INPUT) == false && useDataStoreValue(USE_ONLINE_WHISPER) == true
 }
 
 val VoiceInputMenu = UserSettingsMenu(
@@ -72,6 +79,18 @@ val VoiceInputMenu = UserSettingsMenu(
             subtitle = R.string.voice_input_settings_autostop_vad_subtitle,
             setting = USE_VAD_AUTOSTOP
         ).copy(visibilityCheck = visibilityCheckNotSystemVoiceInput),
+
+        userSettingToggleDataStore(
+            title = R.string.voice_input_settings_use_online_whisper,
+            subtitle = R.string.voice_input_settings_use_online_whisper_subtitle,
+            setting = USE_ONLINE_WHISPER
+        ).copy(visibilityCheck = visibilityCheckNotSystemVoiceInput),
+
+        userSettingTextFieldDataStore(
+            title = R.string.voice_input_settings_openai_api_key,
+            placeholder = R.string.voice_input_settings_openai_api_key_placeholder,
+            setting = OPENAI_API_KEY
+        ).copy(visibilityCheck = visibilityCheckOnlineWhisper),
 
         userSettingNavigationItem(
             title = R.string.voice_input_settings_change_models,

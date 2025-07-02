@@ -367,3 +367,13 @@ val SHOW_EMOJI_SUGGESTIONS = SettingsKey(
     key = booleanPreferencesKey("suggestEmojis"),
     default = true
 )
+
+val USE_ONLINE_WHISPER = SettingsKey(
+    key = booleanPreferencesKey("useOnlineWhisper"),
+    default = false
+)
+
+val OPENAI_API_KEY = SettingsKey(
+    key = stringPreferencesKey("openaiApiKey"),
+    default = ""
+)

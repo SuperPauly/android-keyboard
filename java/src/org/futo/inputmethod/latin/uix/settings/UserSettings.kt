@@ -101,6 +101,23 @@ fun userSettingToggleDataStore(
     }
 )
 
+fun userSettingTextFieldDataStore(
+    @StringRes title: Int,
+    @StringRes placeholder: Int,
+    setting: SettingsKey<String>,
+    @StringRes subtitle: Int? = null
+): UserSetting = UserSetting(
+    name = title,
+    subtitle = subtitle,
+    component = {
+        SettingTextField(
+            title = stringResource(title),
+            placeholder = stringResource(placeholder), 
+            field = setting
+        )
+    }
+)
+
 fun userSettingDecorationOnly(
     decoration: @Composable () -> Unit
 ): UserSetting = UserSetting(
