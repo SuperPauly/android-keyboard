@@ -199,6 +199,11 @@ class AudioRecognizer(
 
     @Throws(ModelDoesNotExistException::class)
     private fun verifyModelsExist() {
+        if (settings.useOnlineWhisper) {
+            // Skip model verification when using online whisper
+            return
+        }
+        
         val modelsThatDoNotExist = mutableListOf<ModelLoader>()
 
         if (!settings.modelRunConfiguration.primaryModel.exists(context)) {
@@ -298,7 +303,9 @@ class AudioRecognizer(
     }
 
     private suspend fun preloadModels() {
-        modelRunner.preload(settings.modelRunConfiguration)
+        if (!settings.useOnlineWhisper) {
+            modelRunner.preload(settings.modelRunConfiguration)
+        }
     }
 
     private fun expandSpaceIfAllowed(): Boolean {
