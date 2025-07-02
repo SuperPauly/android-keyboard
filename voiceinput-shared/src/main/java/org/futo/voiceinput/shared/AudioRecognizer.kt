@@ -41,6 +41,7 @@ import org.futo.voiceinput.shared.whisper.DecodingConfiguration
 import org.futo.voiceinput.shared.whisper.ModelManager
 import org.futo.voiceinput.shared.whisper.MultiModelRunConfiguration
 import org.futo.voiceinput.shared.whisper.MultiModelRunner
+import org.futo.voiceinput.shared.whisper.OpenAIWhisperClient
 import org.futo.voiceinput.shared.whisper.isBlankResult
 import java.nio.FloatBuffer
 import java.nio.ShortBuffer
@@ -86,7 +87,9 @@ data class RecordingSettings(
 data class AudioRecognizerSettings(
     val modelRunConfiguration: MultiModelRunConfiguration,
     val decodingConfiguration: DecodingConfiguration,
-    val recordingConfiguration: RecordingSettings
+    val recordingConfiguration: RecordingSettings,
+    val useOnlineWhisper: Boolean,
+    val openaiApiKey: String
 )
 
 class ModelDoesNotExistException(val models: List<ModelLoader>) : Throwable()
@@ -102,6 +105,11 @@ class AudioRecognizer(
     private var recorder: AudioRecord? = null
 
     private val modelRunner = MultiModelRunner(modelManager)
+    private val openaiClient = if (settings.useOnlineWhisper && settings.openaiApiKey.isNotEmpty()) {
+        OpenAIWhisperClient(settings.openaiApiKey)
+    } else {
+        null
+    }
 
     private val canExpandSpace = settings.recordingConfiguration.canExpandSpace
     private val useVAD = settings.recordingConfiguration.useVADAutoStop
@@ -191,6 +199,11 @@ class AudioRecognizer(
 
     @Throws(ModelDoesNotExistException::class)
     private fun verifyModelsExist() {
+        if (settings.useOnlineWhisper) {
+            // Skip model verification when using online whisper
+            return
+        }
+        
         val modelsThatDoNotExist = mutableListOf<ModelLoader>()
 
         if (!settings.modelRunConfiguration.primaryModel.exists(context)) {
@@ -290,7 +303,9 @@ class AudioRecognizer(
     }
 
     private suspend fun preloadModels() {
-        modelRunner.preload(settings.modelRunConfiguration)
+        if (!settings.useOnlineWhisper) {
+            modelRunner.preload(settings.modelRunConfiguration)
+        }
     }
 
     private fun expandSpaceIfAllowed(): Boolean {
@@ -531,6 +546,14 @@ class AudioRecognizer(
     }
 
     private suspend fun runModel() {
+        if (settings.useOnlineWhisper && openaiClient != null) {
+            runOnlineModel()
+        } else {
+            runOfflineModel()
+        }
+    }
+    
+    private suspend fun runOfflineModel() {
         loadModelJob?.let {
             if (it.isActive) {
                 println("Model was not finished loading...")
@@ -550,6 +573,37 @@ class AudioRecognizer(
             ).trim()
         }catch(e: InferenceCancelledException) {
             yield()
+            return
+        }
+
+        val text = when {
+            isBlankResult(outputText) -> ""
+            else -> outputText
+        }
+
+        yield()
+        lifecycleScope.launch {
+            withContext(Dispatchers.Main) {
+                yield()
+                listener.finished(text)
+            }
+        }
+    }
+    
+    private suspend fun runOnlineModel() {
+        val floatArray = floatSamples.array().sliceArray(0 until floatSamples.position())
+
+        yield()
+        val outputText = try {
+            openaiClient!!.transcribe(
+                audioData = floatArray,
+                languages = settings.decodingConfiguration.languages,
+                callback = runnerCallback
+            ).trim()
+        } catch(e: Exception) {
+            // If API fails, fallback to offline model if available
+            println("OpenAI API failed, falling back to offline model: ${e.message}")
+            runOfflineModel()
             return
         }
 

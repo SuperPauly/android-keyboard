@@ -492,6 +492,10 @@
     <string name="voice_input_settings_autostop_vad_subtitle">Automatically stop when silence is detected. You may need to manually stop regardless if there\'s too much background noise.</string>
     <string name="voice_input_settings_change_models">Models</string>
     <string name="voice_input_settings_change_models_subtitle">To change the models, visit Languages &amp; Models menu</string>
+    <string name="voice_input_settings_use_online_whisper">Use online transcription</string>
+    <string name="voice_input_settings_use_online_whisper_subtitle">Send audio to OpenAI Whisper API instead of using offline model</string>
+    <string name="voice_input_settings_openai_api_key">OpenAI API Key</string>
+    <string name="voice_input_settings_openai_api_key_placeholder">sk-...</string>
 
     <!-- Prediction menu -->
     <string name="prediction_settings_title">Text Prediction</string>
